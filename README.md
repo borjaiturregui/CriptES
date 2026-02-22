@@ -125,7 +125,7 @@ CriptES tiene una identidad visual propia e inconfundible:
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/TU_USUARIO/CriptES.git
+git clone https://github.com/borjaiturregui/CriptES.git
 
 # Abrir en Android Studio
 cd CriptES
