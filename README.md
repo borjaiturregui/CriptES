@@ -125,7 +125,7 @@ CriptES tiene una identidad visual propia e inconfundible:
 
 ```bash
 # Clonar el repositorio
-git clone https://github.com/TU_USUARIO/CriptES.git
+git clone https://github.com/borjaiturregui/CriptES.git
 
 # Abrir en Android Studio
 cd CriptES
@@ -173,7 +173,6 @@ cd CriptES
 - [ ] Detector de tipo de hash
 - [ ] Generador de contraseñas seguras
 - [ ] Soporte ECC (Elliptic Curve Cryptography)
-- [ ] Widget de generador de contraseñas
 - [ ] Exportar/compartir claves RSA
 
 ---
@@ -194,6 +193,6 @@ MIT License — Úsalo, modifícalo, compártelo.
 
 <div align="center">
 
-Hecho con ❤️ y mucha curiosidad criptográfica 🔐
+Hecho con 🖤 y mucha curiosidad criptográfica 🔐
 
 </div>
