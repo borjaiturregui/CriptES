@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    CriptES — strings.xml
+    Todo el texto de la app en español
+-->
+<resources>
+    <string name="app_name">CriptES</string>
+    <string name="app_descripcion">Kit de Seguridad Criptográfica</string>
+
+    <!-- Pantalla de inicio -->
+    <string name="inicio_titulo">CriptES</string>
+    <string name="inicio_subtitulo">Kit de Seguridad Criptográfica</string>
+    <string name="inicio_herramientas">Herramientas</string>
+    <string name="inicio_sin_internet">100% offline — Sin internet, sin recopilación de datos</string>
+
+    <!-- Módulos -->
+    <string name="modulo_cifrado_texto">Cifrado de Texto</string>
+    <string name="modulo_cifrado_rsa">Cifrado RSA</string>
+    <string name="modulo_hash">Generador de Hashes</string>
+    <string name="modulo_esteganografia">Esteganografía</string>
+    <string name="modulo_archivos">Cifrado de Archivos</string>
+
+    <!-- Acciones comunes -->
+    <string name="accion_cifrar">Cifrar</string>
+    <string name="accion_descifrar">Descifrar</string>
+    <string name="accion_copiar">Copiar</string>
+    <string name="accion_copiado">¡Copiado!</string>
+    <string name="accion_limpiar">Limpiar</string>
+    <string name="accion_volver">Volver</string>
+    <string name="accion_aprender">Aprender más</string>
+
+    <!-- Campos -->
+    <string name="campo_texto_cifrar">Texto a cifrar</string>
+    <string name="campo_texto_descifrar">Texto cifrado (Base64)</string>
+    <string name="campo_contrasena">Contraseña</string>
+    <string name="campo_resultado">Resultado</string>
+
+    <!-- Mensajes de error -->
+    <string name="error_texto_vacio">El texto no puede estar vacío</string>
+    <string name="error_contrasena_vacia">La contraseña no puede estar vacía</string>
+    <string name="error_campos_incompletos">Completa todos los campos</string>
+
+    <!-- Modo educativo -->
+    <string name="educativo_titulo">Modo Educativo</string>
+    <string name="educativo_historia">📖 Historia</string>
+    <string name="educativo_como_funciona">⚙️ ¿Cómo funciona?</string>
+    <string name="educativo_fortalezas">✅ Fortalezas</string>
+    <string name="educativo_debilidades">⚠️ Debilidades</string>
+    <string name="educativo_casos_uso">🌐 Casos de Uso Reales</string>
+    <string name="educativo_dato_curioso">💡 ¿Sabías que…?</string>
+
+    <!-- Versión -->
+    <string name="version">v1.0.0</string>
+    <string name="footer_texto">Proyecto educativo de código abierto</string>
+</resources>
