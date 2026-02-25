@@ -165,15 +165,13 @@ cd CriptES
 ## 🛣️ Roadmap
 
 - [x] Cifrado simétrico (AES, DES, 3DES, ChaCha20)
-- [x] Cifrado asimétrico RSA
 - [x] Generador de hashes (MD5, SHA-1, SHA-256, SHA-512)
-- [x] Esteganografía LSB en imágenes
-- [x] Cifrado de archivos
 - [x] Modo educativo en español
-- [ ] Detector de tipo de hash
-- [ ] Generador de contraseñas seguras
-- [ ] Soporte ECC (Elliptic Curve Cryptography)
+- [ ] Cifrado asimétrico RSA
+- [ ] Cifrado de archivos
+- [ ] Esteganografía LSB en imágenes
 - [ ] Exportar/compartir claves RSA
+- [ ] Generador de contraseñas seguras
 
 ---
 
