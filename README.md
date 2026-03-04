@@ -2,15 +2,31 @@
 
 <div align="center">
 
-![CriptES Banner](https://img.shields.io/badge/CriptES-v1.0.0-darkred?style=for-the-badge&logo=android&logoColor=white)
-![Kotlin](https://img.shields.io/badge/Kotlin-100%25-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)
-![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-UI-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)
-![License](https://img.shields.io/badge/Licencia-MIT-red?style=for-the-badge)
-![API](https://img.shields.io/badge/API-26%2B-darkred?style=for-the-badge&logo=android)
+[![CriptES](https://img.shields.io/badge/CriptES-v1.0.0-darkred?style=for-the-badge&logo=android&logoColor=white)](https://github.com/borjaiturregui/CriptES/releases/latest)
+[![Kotlin](https://img.shields.io/badge/Kotlin-100%25-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![Jetpack Compose](https://img.shields.io/badge/Jetpack_Compose-UI-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://developer.android.com/compose)
+[![License](https://img.shields.io/badge/Licencia-MIT-red?style=for-the-badge)](LICENSE)
+[![API](https://img.shields.io/badge/API-26%2B-darkred?style=for-the-badge&logo=android)](https://developer.android.com)
+[![Download](https://img.shields.io/github/downloads/borjaiturregui/CriptES/total?style=for-the-badge&color=darkred&label=Descargas)](https://github.com/borjaiturregui/CriptES/releases/latest)
 
 **Aplicación Android de criptografía, hashing y esteganografía — completamente en español.**
 
 *Construida con curiosidad, pasión por la seguridad y Jetpack Compose.*
+
+[📲 Descargar APK](https://github.com/borjaiturregui/CriptES/releases/latest) · [🐛 Reportar bug](https://github.com/borjaiturregui/CriptES/issues) · [💡 Sugerir función](https://github.com/borjaiturregui/CriptES/issues)
+
+</div>
+
+---
+
+## 📸 Capturas de Pantalla
+
+<div align="center">
+
+| Pantalla Principal | Cifrado de Texto | Generador de Hashes |
+|:---:|:---:|:---:|
+| ![Pantalla principal](screenshots/pantalla_inicio.png) | ![Cifrado de texto](screenshots/cifrado_texto.png) | ![Generador de hashes](screenshots/generador_hashes.png) |
+| Menú con todas las herramientas | AES, DES, 3DES y ChaCha20 | MD5, SHA-1, SHA-256, SHA-512 |
 
 </div>
 
@@ -26,42 +42,83 @@
 
 ## 📱 Funcionalidades
 
+<table>
+<tr>
+<td width="50%">
+
 ### 🔒 Cifrado Simétrico de Texto
-Cifra y descifra texto con los algoritmos más usados en la industria:
-- **AES-256** (Advanced Encryption Standard) — El estándar más seguro actual
-- **DES** (Data Encryption Standard) — Clásico, ahora considerado débil
-- **3DES** (Triple DES) — Mejora de DES con triple aplicación
-- **ChaCha20** — Moderno y rápido, usado en TLS 1.3
+Cifra y descifra mensajes con los algoritmos más usados en la industria:
+- **AES-256** — El estándar más seguro actual
+- **DES** — Clásico, ahora considerado débil
+- **3DES** — Mejora de DES con triple aplicación
+- **ChaCha20** — Moderno, usado en TLS 1.3
+
+</td>
+<td width="50%">
 
 ### 🔑 Cifrado Asimétrico RSA
-- Generación de par de claves (pública/privada)
+Criptografía de clave pública/privada:
+- Generación de par de claves 2048 bits
 - Cifrado con clave pública
 - Descifrado con clave privada
-- Exportación/importación de claves en formato PEM
+- Exportación en formato PEM estándar
+
+</td>
+</tr>
+<tr>
+<td width="50%">
 
 ### #️⃣ Generador de Hashes
-Genera huellas digitales criptográficas de cualquier texto:
+Genera huellas digitales criptográficas:
 - **MD5** — Rápido, no recomendado para seguridad
 - **SHA-1** — Obsoleto pero ampliamente estudiado
 - **SHA-256** — Estándar actual (Bitcoin lo usa)
 - **SHA-512** — Máxima seguridad en hashing
 
-### 🖼️ Esteganografía en Imágenes
-- Ocultar texto secreto dentro de imágenes PNG/JPG
-- Extraer mensajes ocultos de imágenes
-- Técnica LSB (Least Significant Bit)
+</td>
+<td width="50%">
 
-### 📁 Cifrado de Archivos
-- Cifrar cualquier archivo con AES-256
-- Descifrar archivos protegidos
-- Archivos guardados en `Descargas/criptes/`
+### 🖼️ Esteganografía *(próximamente)*
+Oculta mensajes dentro de imágenes:
+- Técnica LSB (Least Significant Bit)
+- Compatible con PNG y JPG
+- Sin alteración visual detectable
+
+</td>
+</tr>
+</table>
 
 ### 📖 Modo Educativo
-Cada módulo incluye una explicación detallada en español sobre:
-- Historia del algoritmo
-- Cómo funciona matemáticamente
-- Casos de uso reales
-- Fortalezas y debilidades
+Cada módulo incluye una explicación completa en español: historia del algoritmo, cómo funciona matemáticamente, casos de uso reales y sus fortalezas y debilidades.
+
+---
+
+## ⚡ Instalación rápida
+
+### Opción A — Descargar APK directamente *(recomendado)*
+
+1. Ve a [**Releases**](https://github.com/borjaiturregui/CriptES/releases/latest)
+2. Descarga el archivo `CriptES-vX.X.apk`
+3. Abre el archivo en tu Android
+4. Si aparece un aviso: **Ajustes → Instalar apps desconocidas → Permitir**
+5. ¡Listo! 🎉
+
+> ⚠️ Requiere Android 8.0 (API 26) o superior
+
+### Opción B — Compilar desde el código fuente
+
+```bash
+# Clonar el repositorio
+git clone https://github.com/borjaiturregui/CriptES.git
+
+# Abrir en Android Studio
+cd CriptES
+
+# Instalar en dispositivo o emulador
+./gradlew installDebug
+```
+
+**Prerrequisitos:** Android Studio Hedgehog (2023.1.1)+, JDK 17+, Android SDK API 26+
 
 ---
 
@@ -71,107 +128,95 @@ El proyecto sigue **Clean Architecture** con separación clara de responsabilida
 
 ```
 com.criptes.app/
-├── ui/                     # Capa de presentación (Jetpack Compose)
-│   ├── tema/               # Colores, tipografía, tema oscuro
-│   ├── navegacion/         # Navegación entre pantallas
-│   ├── pantallas/          # Pantallas principales
-│   └── componentes/        # Componentes reutilizables
-├── dominio/                # Lógica de negocio
-│   ├── modelos/            # Modelos de datos
-│   └── casos_uso/          # Casos de uso (Use Cases)
-├── datos/                  # Capa de datos
-│   ├── repositorio/        # Implementación de repositorios
-│   └── local/              # Room Database
-├── criptografia/           # Motor criptográfico
-│   ├── CifradoSimetrico.kt
-│   ├── CifradoRSA.kt
-│   ├── GeneradorHash.kt
-│   └── Esteganografia.kt
-└── di/                     # Inyección de dependencias (Hilt)
+├── MainActivity.kt
+├── ui/
+│   ├── tema/               # Colores, tipografía y tema oscuro
+│   │   ├── Colores.kt
+│   │   ├── Tema.kt
+│   │   └── Tipografia.kt
+│   ├── navegacion/         # Rutas y grafo de navegación
+│   │   └── Navegacion.kt
+│   └── pantallas/          # Pantallas principales con ViewModels
+│       ├── PantallaInicio.kt
+│       ├── PantallaCifradoTexto.kt
+│       ├── PantallaGeneradorHash.kt
+│       ├── PantallaEducativa.kt
+│       └── PantallasStub.kt
+├── dominio/
+│   └── modelos/            # Modelos de datos
+│       └── ContenidoEducativo.kt
+└── criptografia/           # Motor criptográfico
+    ├── CifradoSimetrico.kt # AES, DES, 3DES, ChaCha20
+    ├── CifradoRSA.kt       # RSA 2048 bits con OAEP
+    ├── GeneradorHash.kt    # MD5, SHA-1, SHA-256, SHA-512
+    └── Esteganografia.kt   # LSB en imágenes
 ```
 
-### Principios aplicados:
-- **MVVM** (Model-View-ViewModel)
-- **Clean Architecture** (UI → ViewModel → UseCase → Repository)
-- **SOLID** principles
-- **Inyección de dependencias** con Hilt
-- **Coroutines + Flow** para operaciones asíncronas
+**Patrones aplicados:** MVVM · Clean Architecture · SOLID · Coroutines + Flow
 
 ---
 
 ## 🎨 Diseño
 
-CriptES tiene una identidad visual propia e inconfundible:
+CriptES tiene una identidad visual propia: **negro puro + rojo vino**. El tema oscuro no es una opción, es la identidad de la app.
 
-| Elemento | Color |
-|----------|-------|
-| Fondo principal | `#000000` — Negro puro |
-| Superficie cards | `#0F0F0F` — Negro profundo |
-| Color primario | `#7B1A2E` — Rojo vino |
-| Acento | `#B22948` — Rojo vino claro |
-| Texto principal | `#FFFFFF` — Blanco |
-| Texto secundario | `#9E9E9E` — Gris suave |
-
----
-
-## 🚀 Instalación y Uso
-
-### Prerrequisitos
-- Android Studio Hedgehog (2023.1.1) o superior
-- JDK 17+
-- Android SDK API 26+
-
-### Clonar y ejecutar
-
-```bash
-# Clonar el repositorio
-git clone https://github.com/borjaiturregui/CriptES.git
-
-# Abrir en Android Studio
-cd CriptES
-
-# Sincronizar dependencias Gradle
-./gradlew build
-
-# Instalar en dispositivo/emulador
-./gradlew installDebug
-```
+| Elemento | Color | Hex |
+|---|---|---|
+| Fondo principal | ⬛ Negro puro | `#000000` |
+| Superficie cards | ⬛ Negro profundo | `#111111` |
+| Color primario | 🟥 Rojo vino | `#7B1A2E` |
+| Acento | 🟥 Rojo vino claro | `#B22948` |
+| Texto principal | ⬜ Blanco | `#FFFFFF` |
+| Texto secundario | 🔲 Gris suave | `#9E9E9E` |
 
 ---
 
 ## 🛡️ Privacidad y Seguridad
 
-- ✅ **Sin permisos de internet** — Todo funciona offline
-- ✅ **Sin recopilación de datos** — Tu información nunca sale del dispositivo
-- ✅ **Sin anuncios** — Proyecto 100% limpio
-- ✅ **Código abierto** — Auditable por cualquiera
-- ⚠️ Los archivos se guardan en `Descargas/criptes/`
+| ✅ | Característica |
+|---|---|
+| ✅ | **Sin permisos de internet** — Todo funciona 100% offline |
+| ✅ | **Sin recopilación de datos** — Tu información nunca sale del dispositivo |
+| ✅ | **Sin anuncios** — Proyecto completamente limpio |
+| ✅ | **Código abierto** — Auditable por cualquiera en cualquier momento |
+| ✅ | **Sin telemetría** — Cero rastreo de uso |
 
 ---
 
-## 📚 Dependencias Principales
+## 📚 Stack Tecnológico
 
 | Librería | Versión | Uso |
-|----------|---------|-----|
-| Jetpack Compose BOM | 2024.02.00 | UI declarativa |
-| Hilt | 2.51 | Inyección de dependencias |
-| Room | 2.6.1 | Base de datos local |
+|---|---|---|
+| Jetpack Compose BOM | 2024.06.00 | UI declarativa moderna |
+| Kotlin | 1.9.25 | Lenguaje principal |
+| Hilt | 2.51.1 | Inyección de dependencias |
 | Navigation Compose | 2.7.7 | Navegación entre pantallas |
 | Coroutines | 1.8.0 | Operaciones asíncronas |
-| Bouncy Castle | 1.77 | Criptografía avanzada |
+| Bouncy Castle | 1.77 | Motor criptográfico avanzado |
 
 ---
 
 ## 🛣️ Roadmap
 
-- [x] Cifrado simétrico (AES, DES, 3DES, ChaCha20)
+- [x] Cifrado simétrico (AES-256, DES, 3DES, ChaCha20)
 - [x] Generador de hashes (MD5, SHA-1, SHA-256, SHA-512)
 - [x] Modo educativo en español
-- [ ] Cifrado asimétrico RSA
-- [ ] Cifrado de archivos
-- [ ] Esteganografía LSB en imágenes
-- [ ] Exportar/compartir claves RSA
-- [ ] Generador de contraseñas seguras
+- [ ] **v1.1** — Cifrado RSA completo (UI lista, motor implementado)
+- [ ] **v1.1** — Esteganografía LSB en imágenes (motor listo)
+- [ ] **v1.1** — Cifrado de archivos con AES-256
+- [ ] **v1.2** — Generador de contraseñas seguras
+
+---
+
+## 🤝 Contribuir
+
+Las contribuciones son bienvenidas. Si encuentras un bug o tienes una idea:
+
+1. Haz un **Fork** del proyecto
+2. Crea una rama: `git checkout -b feat/nueva-funcion`
+3. Haz commit: `git commit -m "feat: añadir nueva función"`
+4. Push: `git push origin feat/nueva-funcion`
+5. Abre un **Pull Request**
 
 ---
 
@@ -183,14 +228,16 @@ Quería entender la criptografía de verdad, no solo leer sobre ella. Este proye
 
 ## 📄 Licencia
 
-```
-MIT License — Úsalo, modifícalo, compártelo.
-```
+Este proyecto está bajo la licencia **MIT** — úsalo, modifícalo y compártelo libremente.
+
+Ver el archivo [LICENSE](LICENSE) para más detalles.
 
 ---
 
 <div align="center">
 
 Hecho con 🖤 y mucha curiosidad criptográfica 🔐
+
+**[borjaiturregui](https://github.com/borjaiturregui)**
 
 </div>
