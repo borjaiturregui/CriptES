@@ -56,7 +56,7 @@ Cifra y descifra mensajes con los algoritmos más usados en la industria:
 </td>
 <td width="50%">
 
-### 🔑 Cifrado Asimétrico RSA
+### 🔑 Cifrado Asimétrico RSA *(próximamente)*
 Criptografía de clave pública/privada:
 - Generación de par de claves 2048 bits
 - Cifrado con clave pública
@@ -85,6 +85,18 @@ Oculta mensajes dentro de imágenes:
 - Sin alteración visual detectable
 
 </td>
+</tr>
+<tr>
+<td width="50%">
+
+### 📁 Cifrado de Archivos *(próximamente)*
+Protege archivos completos con AES-256:
+- Compatible con cualquier tipo de archivo
+- Archivos guardados en `Descargas/criptes/`
+- Descifrado con la misma contraseña
+
+</td>
+<td width="50%"></td>
 </tr>
 </table>
 
