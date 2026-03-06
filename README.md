@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![CriptES](https://img.shields.io/badge/CriptES-v1.0.0-darkred?style=for-the-badge&logo=android&logoColor=white)](https://github.com/borjaiturregui/CriptES/releases/latest)
+[![CriptES](https://img.shields.io/badge/CriptES-v1.1.1-darkred?style=for-the-badge&logo=android&logoColor=white)](https://github.com/borjaiturregui/CriptES/releases/latest)
 [![Kotlin](https://img.shields.io/badge/Kotlin-100%25-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
 [![Jetpack Compose](https://img.shields.io/badge/Jetpack_Compose-UI-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://developer.android.com/compose)
 [![License](https://img.shields.io/badge/Licencia-MIT-red?style=for-the-badge)](LICENSE)
@@ -56,7 +56,7 @@ Cifra y descifra mensajes con los algoritmos más usados en la industria:
 </td>
 <td width="50%">
 
-### 🔑 Cifrado Asimétrico RSA *(próximamente)*
+### 🔑 Cifrado Asimétrico RSA
 Criptografía de clave pública/privada:
 - Generación de par de claves 2048 bits
 - Cifrado con clave pública
@@ -78,7 +78,7 @@ Genera huellas digitales criptográficas:
 </td>
 <td width="50%">
 
-### 🖼️ Esteganografía *(próximamente)*
+### 🖼️ Esteganografía *(próximamente v1.2)*
 Oculta mensajes dentro de imágenes:
 - Técnica LSB (Least Significant Bit)
 - Compatible con PNG y JPG
@@ -89,7 +89,7 @@ Oculta mensajes dentro de imágenes:
 <tr>
 <td width="50%">
 
-### 📁 Cifrado de Archivos *(próximamente)*
+### 📁 Cifrado de Archivos *(próximamente v1.3)*
 Protege archivos completos con AES-256:
 - Compatible con cualquier tipo de archivo
 - Archivos guardados en `Descargas/criptes/`
@@ -151,6 +151,7 @@ com.criptes.app/
 │   └── pantallas/          # Pantallas principales con ViewModels
 │       ├── PantallaInicio.kt
 │       ├── PantallaCifradoTexto.kt
+│       ├── PantallaCifradoRSA.kt
 │       ├── PantallaGeneradorHash.kt
 │       ├── PantallaEducativa.kt
 │       └── PantallasStub.kt
@@ -201,7 +202,6 @@ CriptES tiene una identidad visual propia: **negro puro + rojo vino**. El tema o
 |---|---|---|
 | Jetpack Compose BOM | 2024.06.00 | UI declarativa moderna |
 | Kotlin | 1.9.25 | Lenguaje principal |
-| Hilt | 2.51.1 | Inyección de dependencias |
 | Navigation Compose | 2.7.7 | Navegación entre pantallas |
 | Coroutines | 1.8.0 | Operaciones asíncronas |
 | Bouncy Castle | 1.77 | Motor criptográfico avanzado |
