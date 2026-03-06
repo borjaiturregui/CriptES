@@ -23,10 +23,10 @@
 
 <div align="center">
 
-| Pantalla Principal | Cifrado de Texto | Generador de Hashes |
-|:---:|:---:|:---:|
-| ![Pantalla principal](screenshots/pantalla_inicio.png) | ![Cifrado de texto](screenshots/cifrado_texto.png) | ![Generador de hashes](screenshots/generador_hashes.png) |
-| Menú con todas las herramientas | AES, DES, 3DES y ChaCha20 | MD5, SHA-1, SHA-256, SHA-512 |
+| Pantalla Principal | Cifrado de Texto | Generador de Hashes | Cifrado RSA |
+|:---:|:---:|:---:|:---:|
+| ![Pantalla principal](screenshots/pantalla_inicio.png) | ![Cifrado de texto](screenshots/cifrado_texto.png) | ![Generador de hashes](screenshots/generador_hashes.png) | ![Cifrado RSA](screenshots/cifrado_rsa.png) |
+| Menú con todas las herramientas | AES, DES, 3DES y ChaCha20 | MD5, SHA-1, SHA-256, SHA-512 | Clave pública/privada 2048 bits |
 
 </div>
 
@@ -210,13 +210,13 @@ CriptES tiene una identidad visual propia: **negro puro + rojo vino**. El tema o
 
 ## 🛣️ Roadmap
 
-- [x] Cifrado simétrico (AES-256, DES, 3DES, ChaCha20)
-- [x] Generador de hashes (MD5, SHA-1, SHA-256, SHA-512)
-- [x] Modo educativo en español
-- [ ] **v1.1** — Cifrado RSA completo (UI lista, motor implementado)
-- [ ] **v1.1** — Esteganografía LSB en imágenes (motor listo)
-- [ ] **v1.1** — Cifrado de archivos con AES-256
-- [ ] **v1.2** — Generador de contraseñas seguras
+- [x] **v1.0** — Cifrado simétrico (AES-256, DES, 3DES, ChaCha20)
+- [x] **v1.0** — Generador de hashes (MD5, SHA-1, SHA-256, SHA-512)
+- [x] **v1.0** — Modo educativo en español
+- [x] **v1.1** — Cifrado RSA (clave pública/privada 2048 bits)
+- [ ] **v1.2** — Esteganografía LSB en imágenes
+- [ ] **v1.3** — Cifrado de archivos con AES-256
+- [ ] **v1.4** — Generador de contraseñas seguras
 
 ---
 
