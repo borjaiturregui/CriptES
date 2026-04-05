@@ -1,6 +1,5 @@
 package com.criptes.app.criptografia
 
-import android.util.Base64
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.Security
 import javax.crypto.Cipher
@@ -79,8 +78,8 @@ object CifradoSimetrico {
         }
     }
 
-    // Vector de inicialización fijo para ChaCha20 (12 bytes = nonce)
-    private val IV_CHACHA20 = ByteArray(12) { it.toByte() }
+    private val TAMAÑO_SAL     = 16
+    private val TAMAÑO_NONCE_CHACHA20 = 12
 
     // ── API Pública ──────────────────────────────────────────
 
@@ -101,12 +100,15 @@ object CifradoSimetrico {
         if (contrasena.isBlank()) return ResultadoCifrado.Error("La contraseña no puede estar vacía")
 
         return try {
-            val clave     = derivarClave(contrasena, algoritmo)
-            val resultado = when (algoritmo) {
+            val sal       = java.security.SecureRandom().generateSeed(TAMAÑO_SAL)
+            val clave     = derivarClave(contrasena, algoritmo, sal)
+            val cifrado   = when (algoritmo) {
                 AlgoritmoSimetrico.CHACHA20    -> cifrarChaCha20(textoCrudo.toByteArray(), clave)
                 else                           -> cifrarConIV(textoCrudo.toByteArray(), clave, algoritmo)
             }
-            ResultadoCifrado.Exito(Base64.encodeToString(resultado, Base64.NO_WRAP))
+            // Formato: [sal de 16 bytes] + [datos cifrados (con IV/nonce incluido)]
+            val resultado = sal + cifrado
+            ResultadoCifrado.Exito(java.util.Base64.getEncoder().encodeToString(resultado))
         } catch (e: Exception) {
             ResultadoCifrado.Error("Error al cifrar: ${e.localizedMessage}")
         }
@@ -129,11 +131,16 @@ object CifradoSimetrico {
         if (contrasena.isBlank())   return ResultadoCifrado.Error("La contraseña no puede estar vacía")
 
         return try {
-            val bytesEntrada = Base64.decode(textoCifrado, Base64.NO_WRAP)
-            val clave        = derivarClave(contrasena, algoritmo)
+            val bytesEntrada = java.util.Base64.getDecoder().decode(textoCifrado)
+            if (bytesEntrada.size <= TAMAÑO_SAL) {
+                return ResultadoCifrado.Error("Texto cifrado inválido o demasiado corto")
+            }
+            val sal          = bytesEntrada.take(TAMAÑO_SAL).toByteArray()
+            val datosCifrados = bytesEntrada.drop(TAMAÑO_SAL).toByteArray()
+            val clave        = derivarClave(contrasena, algoritmo, sal)
             val resultado    = when (algoritmo) {
-                AlgoritmoSimetrico.CHACHA20 -> descifrarChaCha20(bytesEntrada, clave)
-                else                        -> descifrarConIV(bytesEntrada, clave, algoritmo)
+                AlgoritmoSimetrico.CHACHA20 -> descifrarChaCha20(datosCifrados, clave)
+                else                        -> descifrarConIV(datosCifrados, clave, algoritmo)
             }
             ResultadoCifrado.Exito(String(resultado))
         } catch (e: Exception) {
@@ -151,18 +158,16 @@ object CifradoSimetrico {
      * estándar para convertir contraseñas en claves criptográficas.
      * Usa 65536 iteraciones para hacer los ataques de fuerza bruta
      * computacionalmente costosos.
+     *
+     * @param sal Sal aleatoria de 16 bytes, única por cada operación de cifrado.
+     *            Debe generarse con SecureRandom al cifrar y recuperarse del
+     *            ciphertext al descifrar.
      */
     private fun derivarClave(
         contrasena: String,
-        algoritmo:  AlgoritmoSimetrico
+        algoritmo:  AlgoritmoSimetrico,
+        sal:        ByteArray
     ): ByteArray {
-        // Sal fija derivada del nombre del algoritmo
-        // En producción real, usar una sal aleatoria almacenada
-        val sal = "CriptES_${algoritmo.name}_sal".padEnd(16, '0')
-            .toByteArray()
-            .take(16)
-            .toByteArray()
-
         val fabrica = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
         val spec    = PBEKeySpec(
             contrasena.toCharArray(),
@@ -219,25 +224,29 @@ object CifradoSimetrico {
     }
 
     /**
-     * Cifra con ChaCha20 (stream cipher, no necesita IV de bloque).
+     * Cifra con ChaCha20 usando un nonce aleatorio por operación.
+     * Formato de salida: [nonce de 12 bytes] + [datos cifrados]
      */
     private fun cifrarChaCha20(datos: ByteArray, clave: ByteArray): ByteArray {
+        val nonce     = java.security.SecureRandom().generateSeed(TAMAÑO_NONCE_CHACHA20)
         val cipher    = Cipher.getInstance("ChaCha20", "BC")
         val claveSpec = SecretKeySpec(clave, "ChaCha20")
-        val ivSpec    = IvParameterSpec(IV_CHACHA20)
+        val ivSpec    = IvParameterSpec(nonce)
         cipher.init(Cipher.ENCRYPT_MODE, claveSpec, ivSpec)
-        return cipher.doFinal(datos)
+        return nonce + cipher.doFinal(datos)
     }
 
     /**
-     * Descifra con ChaCha20.
+     * Descifra con ChaCha20 extrayendo el nonce del inicio de los datos.
      */
     private fun descifrarChaCha20(datos: ByteArray, clave: ByteArray): ByteArray {
+        val nonce     = datos.take(TAMAÑO_NONCE_CHACHA20).toByteArray()
+        val cifrado   = datos.drop(TAMAÑO_NONCE_CHACHA20).toByteArray()
         val cipher    = Cipher.getInstance("ChaCha20", "BC")
         val claveSpec = SecretKeySpec(clave, "ChaCha20")
-        val ivSpec    = IvParameterSpec(IV_CHACHA20)
+        val ivSpec    = IvParameterSpec(nonce)
         cipher.init(Cipher.DECRYPT_MODE, claveSpec, ivSpec)
-        return cipher.doFinal(datos)
+        return cipher.doFinal(cifrado)
     }
 
     /**

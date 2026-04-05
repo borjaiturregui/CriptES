@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.criptes.app.criptografia.*
 import com.criptes.app.ui.tema.*
+import kotlinx.coroutines.delay
 
 // ============================================================
 //  CriptES — Pantalla Generador de Hashes
@@ -36,15 +37,20 @@ fun PantallaGeneradorHash(
     alVerEducativo: (String) -> Unit
 ) {
     var textoEntrada by remember { mutableStateOf("") }
+    var hashesCalculados by remember { mutableStateOf(emptyMap<AlgoritmoHash, String>()) }
     val portapapeles = LocalClipboardManager.current
 
-    // Calcular hashes en tiempo real mientras el usuario escribe
-    val hashes by remember(textoEntrada) {
-        derivedStateOf {
-            if (textoEntrada.isBlank()) emptyMap()
-            else GeneradorHash.generarTodos(textoEntrada)
+    // Calcular hashes con debounce de 300ms para evitar bloqueos al escribir rápido
+    LaunchedEffect(textoEntrada) {
+        if (textoEntrada.isBlank()) {
+            hashesCalculados = emptyMap()
+        } else {
+            delay(300)
+            hashesCalculados = GeneradorHash.generarTodos(textoEntrada)
         }
     }
+
+    val hashes = hashesCalculados
 
     Scaffold(
         topBar = {

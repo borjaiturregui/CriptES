@@ -471,7 +471,7 @@ private fun PiePagina() {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text      = "CriptES v1.0.0 — Proyecto educativo de código abierto",
+            text      = "CriptES v${com.criptes.app.BuildConfig.VERSION_NAME} — Proyecto educativo de código abierto",
             style     = MaterialTheme.typography.labelSmall,
             color     = GrisMedio,
             textAlign = TextAlign.Center
