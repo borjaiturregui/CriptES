@@ -5,8 +5,6 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.dagger.hilt.android")
-    id("org.jetbrains.kotlin.kapt")
     id("org.jetbrains.kotlin.plugin.parcelize")
 }
 
@@ -50,7 +48,8 @@ android {
     }
 
     buildFeatures {
-        compose = true
+        compose      = true
+        buildConfig  = true
     }
 
     composeOptions {
@@ -90,28 +89,12 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.2")
 
-    // ── Hilt ─────────────────────────────────────────────────
-    implementation("com.google.dagger:hilt-android:2.51.1")
-    kapt("com.google.dagger:hilt-android-compiler:2.51.1")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-
-    // ── Room ──────────────────────────────────────────────────
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
-
     // ── Coroutines ────────────────────────────────────────────
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
     // ── Bouncy Castle ─────────────────────────────────────────
     implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.78.1")
-
-    // ── DataStore ─────────────────────────────────────────────
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
-
-    // ── Coil ──────────────────────────────────────────────────
-    implementation("io.coil-kt:coil-compose:2.6.0")
 
     // ── Splash Screen ─────────────────────────────────────────
     implementation("androidx.core:core-splashscreen:1.0.1")
@@ -128,8 +111,4 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
-}
-
-kapt {
-    correctErrorTypes = true
 }
