@@ -45,7 +45,7 @@ data class ModuloCriptes(
 private val modulos = listOf(
     ModuloCriptes(
         titulo      = "Cifrado de Texto",
-        descripcion = "AES, DES, 3DES y ChaCha20 para cifrar mensajes",
+        descripcion = "AES-GCM, ChaCha20-Poly1305, DES y 3DES para cifrar mensajes",
         icono       = Icons.Filled.Lock,
         ruta        = Rutas.CIFRADO_TEXTO
     ),
@@ -70,9 +70,15 @@ private val modulos = listOf(
     ),
     ModuloCriptes(
         titulo      = "Cifrado de Archivos",
-        descripcion = "Protege archivos completos con AES-256",
+        descripcion = "Protege archivos completos con AES-256-GCM",
         icono       = Icons.Filled.FolderOff,
         ruta        = Rutas.CIFRADO_ARCHIVO
+    ),
+    ModuloCriptes(
+        titulo      = "Generador de Contraseñas",
+        descripcion = "Contraseñas aleatorias y seguras, con medidor de fuerza",
+        icono       = Icons.Filled.VpnKey,
+        ruta        = Rutas.GENERADOR_CONTRASENAS
     )
 )
 

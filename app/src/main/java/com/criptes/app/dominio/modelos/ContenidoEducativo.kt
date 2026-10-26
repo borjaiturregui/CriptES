@@ -26,7 +26,8 @@ enum class CategoriaAlgoritmo(val etiqueta: String) {
     SIMETRICO("Cifrado Simétrico"),
     ASIMETRICO("Cifrado Asimétrico"),
     HASH("Función Hash"),
-    ESTEGANOGRAFIA("Esteganografía")
+    ESTEGANOGRAFIA("Esteganografía"),
+    UTILIDAD("Herramienta de seguridad")
 }
 
 enum class NivelSeguridad(val etiqueta: String, val descripcion: String) {
@@ -44,6 +45,93 @@ enum class NivelSeguridad(val etiqueta: String, val descripcion: String) {
 object ContenidoEducativo {
 
     val algoritmos: Map<String, InfoEducativa> = mapOf(
+
+        // ── ChaCha20-Poly1305 ───────────────────────────────
+        "CHACHA20" to InfoEducativa(
+            nombre       = "ChaCha20-Poly1305",
+            categoria    = CategoriaAlgoritmo.SIMETRICO,
+            añoCreacion  = 2008,
+            creadores    = "Daniel J. Bernstein (ChaCha20) · Poly1305, también de Bernstein",
+            nivelSeguridad = NivelSeguridad.MUY_FUERTE,
+            historia = """
+                ChaCha20 es una variante del cifrador de flujo Salsa20, que Daniel J. Bernstein
+                presentó en 2008. Poly1305 es un autenticador de mensajes, también suyo.
+
+                En 2015 se estandarizó su combinación (RFC 7539, hoy RFC 8439) y Google la
+                empezó a usar en Chrome y Android porque va muy rápida en móviles sin
+                aceleración de hardware para AES. TLS 1.3 la incluye como suite obligatoria
+                alternativa a AES-GCM.
+            """.trimIndent(),
+            comoFunciona = """
+                ChaCha20 genera un flujo de bytes pseudoaleatorio a partir de la clave (256 bits)
+                y un nonce de 96 bits, y lo suma (XOR) con el mensaje.
+
+                Poly1305 calcula una etiqueta de 16 bytes sobre el texto cifrado. Al descifrar
+                se comprueba la etiqueta ANTES de entregar nada: si alguien modificó un solo bit,
+                o la contraseña es incorrecta, el descifrado falla.
+
+                En CriptES la clave sale de tu contraseña con PBKDF2-HMAC-SHA-256 y una sal
+                aleatoria; el nonce es aleatorio en cada cifrado.
+            """.trimIndent(),
+            fortalezas = listOf(
+                "Cifrado autenticado: detecta cualquier manipulación",
+                "Muy rápido en software, incluso en móviles antiguos",
+                "Diseño simple, sin tablas que den fugas por tiempos de acceso"
+            ),
+            debilidades = listOf(
+                "Nunca se debe repetir un nonce con la misma clave",
+                "Una contraseña débil sigue siendo el eslabón más flojo"
+            ),
+            casosDeUso = listOf("TLS 1.3 y HTTPS", "WireGuard y otras VPN", "SSH", "Mensajería segura"),
+            datoCurioso = """
+                El nombre "ChaCha" es un juego con "Salsa": ambos son bailes. La ronda de mezcla
+                de ChaCha difunde mejor los bits que la de Salsa con el mismo coste.
+            """.trimIndent()
+        ),
+
+        // ── Generador de contraseñas ────────────────────────
+        "CONTRASENAS" to InfoEducativa(
+            nombre       = "Contraseñas aleatorias y entropía",
+            categoria    = CategoriaAlgoritmo.UTILIDAD,
+            añoCreacion  = 1961,
+            creadores    = "Las contraseñas informáticas nacen con el sistema CTSS del MIT (1961)",
+            nivelSeguridad = NivelSeguridad.FUERTE,
+            historia = """
+                La primera contraseña informática conocida es de 1961, en el sistema
+                compartido CTSS del MIT. Poco después alguien consiguió imprimir el archivo
+                de contraseñas de todos los usuarios: el primer robo de credenciales.
+
+                Desde entonces el problema es el mismo: las personas elegimos contraseñas
+                predecibles, y un atacante las prueba por orden de probabilidad.
+            """.trimIndent(),
+            comoFunciona = """
+                La seguridad de una contraseña aleatoria se mide en bits de entropía:
+                longitud × log2(tamaño del alfabeto).
+
+                Ejemplo: 16 caracteres de un alfabeto de 94 símbolos ≈ 105 bits. Cada bit
+                extra duplica el trabajo de un atacante.
+
+                Para generarla, CriptES usa SecureRandom del sistema, elige cada carácter de
+                forma uniforme (sin sesgo), garantiza un carácter de cada tipo activado y
+                baraja el resultado.
+            """.trimIndent(),
+            fortalezas = listOf(
+                "Imposible de adivinar por patrones o diccionarios",
+                "La entropía mostrada es real porque la contraseña es aleatoria",
+                "Se genera y queda en tu dispositivo"
+            ),
+            debilidades = listOf(
+                "Difícil de recordar: conviene un gestor de contraseñas",
+                "No sirve de nada si la reutilizas en varios sitios",
+                "La entropía solo es válida para contraseñas aleatorias, no para frases elegidas por ti"
+            ),
+            casosDeUso = listOf("Cuentas nuevas", "Contraseña maestra de un gestor", "Claves de cifrado de archivos"),
+            datoCurioso = """
+                Una contraseña aleatoria de 12 caracteres con mayúsculas, minúsculas, números y
+                símbolos tiene unos 79 bits de entropía: miles de millones de años de fuerza
+                bruta con hardware actual si el sitio la guarda bien (con hash lento).
+            """.trimIndent()
+        ),
 
         // ── AES ─────────────────────────────────────────────
         "AES" to InfoEducativa(

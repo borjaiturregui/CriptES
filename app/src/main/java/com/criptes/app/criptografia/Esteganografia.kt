@@ -1,13 +1,13 @@
 package com.criptes.app.criptografia
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.graphics.Color
 import java.io.ByteArrayOutputStream
 
 // ============================================================
 //  CriptES — Motor de Esteganografía
-//  Técnica LSB (Least Significant Bit) en imágenes PNG/JPG
+//  Técnica LSB (Least Significant Bit) en imágenes
 // ============================================================
 
 /**
@@ -22,185 +22,92 @@ sealed class ResultadoEsteganografia {
 /**
  * Motor de esteganografía por técnica LSB (Least Significant Bit).
  *
- * ¿Qué es LSB?
- * Cada píxel de una imagen tiene canales de color (R, G, B),
- * cada uno con un valor de 0 a 255 (8 bits).
+ * Cada píxel tiene canales R, G y B de 8 bits. Cambiar el bit menos
+ * significativo de un canal altera el color en 1/255, imperceptible a
+ * simple vista, y permite guardar 3 bits por píxel.
  *
- * El bit menos significativo de cada canal tiene un impacto
- * visual mínimo (cambia el color solo en 1/255).
+ * La lógica de bits vive en [EsteganografiaLSB] (probada en JVM); esta
+ * clase solo adapta [Bitmap] a un array de píxeles.
  *
- * Al modificar el LSB de los canales R, G, B de cada píxel,
- * podemos almacenar 3 bits por píxel sin que el ojo humano
- * note ninguna diferencia.
- *
- * Ejemplo:
- *  Color original: R=200 (11001000)
- *  Almacenamos '1': R=201 (11001001)
- *  La diferencia visual es imperceptible.
+ * - La imagen se aplana sobre fondo negro antes de ocultar: así todos los
+ *   píxeles son opacos y los valores RGB no se alteran por la
+ *   premultiplicación del alfa al guardar el PNG.
+ * - La imagen resultante debe guardarse como PNG (sin pérdida).
  */
 object Esteganografia {
 
-    // Marcador que señala el fin del mensaje oculto
-    private const val MARCADOR_FIN = "<<<CRIPTES_FIN>>>"
-
-    // ── API Pública ──────────────────────────────────────────
-
     /**
-     * Oculta un mensaje de texto dentro de una imagen usando LSB.
+     * Oculta un mensaje de texto dentro de una imagen.
      *
-     * @param imagen  Bitmap de la imagen portadora (PNG recomendado)
-     * @param mensaje Texto a ocultar dentro de la imagen
-     * @return ResultadoEsteganografia.ExitoOcultar con el Bitmap modificado
+     * @param contrasena Opcional. Si no está vacía, el mensaje se cifra con AES-256-GCM.
      */
-    fun ocultarMensaje(imagen: Bitmap, mensaje: String): ResultadoEsteganografia {
+    fun ocultarMensaje(imagen: Bitmap, mensaje: String, contrasena: String = ""): ResultadoEsteganografia {
         if (mensaje.isBlank()) return ResultadoEsteganografia.Error("El mensaje no puede estar vacío")
 
-        // Preparar el mensaje con marcador de fin
-        val mensajeCompleto = mensaje + MARCADOR_FIN
-        val bitsDeTexto     = textoABits(mensajeCompleto)
-
-        // Verificar capacidad de la imagen
-        val capacidadBits = imagen.width * imagen.height * 3  // 3 bits por píxel (R, G, B)
-        if (bitsDeTexto.size > capacidadBits) {
-            val maxCaracteres = (capacidadBits / 8) - MARCADOR_FIN.length
-            return ResultadoEsteganografia.Error(
-                "Imagen muy pequeña. Capacidad máxima: ~$maxCaracteres caracteres"
-            )
+        val contenido = EsteganografiaLSB.empaquetar(mensaje, contrasena).getOrElse {
+            return ResultadoEsteganografia.Error("Error preparando el mensaje: ${it.localizedMessage}")
         }
-
         return try {
-            // Copiar la imagen para no modificar la original
-            val imagenModificada = imagen.copy(Bitmap.Config.ARGB_8888, true)
-            var indiceBit        = 0
+            val aplanada = aplanar(imagen)
+            val pixeles  = IntArray(aplanada.width * aplanada.height)
+            aplanada.getPixels(pixeles, 0, aplanada.width, 0, 0, aplanada.width, aplanada.height)
 
-            // Recorrer cada píxel y modificar los LSBs
-            buclePixeles@ for (y in 0 until imagenModificada.height) {
-                for (x in 0 until imagenModificada.width) {
-                    if (indiceBit >= bitsDeTexto.size) break@buclePixeles
-
-                    val pixel = imagenModificada.getPixel(x, y)
-                    var r = Color.red(pixel)
-                    var g = Color.green(pixel)
-                    var b = Color.blue(pixel)
-
-                    // Modificar canal R (si hay bits disponibles)
-                    if (indiceBit < bitsDeTexto.size) {
-                        r = modificarLSB(r, bitsDeTexto[indiceBit++])
-                    }
-                    // Modificar canal G
-                    if (indiceBit < bitsDeTexto.size) {
-                        g = modificarLSB(g, bitsDeTexto[indiceBit++])
-                    }
-                    // Modificar canal B
-                    if (indiceBit < bitsDeTexto.size) {
-                        b = modificarLSB(b, bitsDeTexto[indiceBit++])
-                    }
-
-                    imagenModificada.setPixel(x, y, Color.rgb(r, g, b))
-                }
+            if (!EsteganografiaLSB.ocultar(pixeles, contenido)) {
+                return ResultadoEsteganografia.Error(
+                    "Imagen demasiado pequeña. Capacidad máxima: ~${calcularCapacidad(imagen)} bytes de mensaje " +
+                    "(el mensaje ocupa ${contenido.size})"
+                )
             }
-
-            ResultadoEsteganografia.ExitoOcultar(imagenModificada)
+            aplanada.setPixels(pixeles, 0, aplanada.width, 0, 0, aplanada.width, aplanada.height)
+            ResultadoEsteganografia.ExitoOcultar(aplanada)
         } catch (e: Exception) {
             ResultadoEsteganografia.Error("Error ocultando mensaje: ${e.localizedMessage}")
         }
     }
 
     /**
-     * Extrae un mensaje oculto de una imagen modificada por LSB.
+     * Extrae el mensaje oculto de una imagen generada por CriptES.
      *
-     * @param imagen Bitmap que puede contener un mensaje oculto
-     * @return ResultadoEsteganografia.ExitoExtraer con el mensaje, o Error
+     * @param contrasena Necesaria solo si el mensaje se ocultó con contraseña.
      */
-    fun extraerMensaje(imagen: Bitmap): ResultadoEsteganografia {
+    fun extraerMensaje(imagen: Bitmap, contrasena: String = ""): ResultadoEsteganografia {
         return try {
-            val bitsExtraidos = StringBuilder()
-            val bytesExtraidos = mutableListOf<Int>()
+            val aplanada = aplanar(imagen)
+            val pixeles  = IntArray(aplanada.width * aplanada.height)
+            aplanada.getPixels(pixeles, 0, aplanada.width, 0, 0, aplanada.width, aplanada.height)
 
-            buclePixeles@ for (y in 0 until imagen.height) {
-                for (x in 0 until imagen.width) {
-                    val pixel = imagen.getPixel(x, y)
-                    val r = Color.red(pixel)
-                    val g = Color.green(pixel)
-                    val b = Color.blue(pixel)
-
-                    // Extraer LSB de cada canal
-                    bitsExtraidos.append(r and 1)
-                    bitsExtraidos.append(g and 1)
-                    bitsExtraidos.append(b and 1)
-
-                    // Cuando tenemos 8 bits, convertir a carácter
-                    while (bitsExtraidos.length >= 8) {
-                        val byte     = bitsExtraidos.substring(0, 8).toInt(2)
-                        bitsExtraidos.delete(0, 8)
-                        bytesExtraidos.add(byte)
-                    }
-
-                    // Verificar si ya encontramos el marcador de fin
-                    val textoActual = String(bytesExtraidos.map { it.toByte() }.toByteArray())
-                    if (textoActual.contains(MARCADOR_FIN)) break@buclePixeles
-                }
-            }
-
-            val textoCompleto = String(bytesExtraidos.map { it.toByte() }.toByteArray())
-
-            if (!textoCompleto.contains(MARCADOR_FIN)) {
-                return ResultadoEsteganografia.Error(
+            val contenido = EsteganografiaLSB.extraer(pixeles)
+                ?: return ResultadoEsteganografia.Error(
                     "No se encontró ningún mensaje oculto en esta imagen.\n" +
-                    "Asegúrate de usar una imagen generada por CriptES."
+                    "Usa un PNG generado por CriptES, sin recomprimir ni redimensionar."
                 )
-            }
-
-            val mensaje = textoCompleto.substringBefore(MARCADOR_FIN)
-            ResultadoEsteganografia.ExitoExtraer(mensaje)
-
+            EsteganografiaLSB.desempaquetar(contenido, contrasena).fold(
+                onSuccess = { ResultadoEsteganografia.ExitoExtraer(it) },
+                onFailure = { ResultadoEsteganografia.Error(it.localizedMessage ?: "Error extrayendo mensaje") }
+            )
         } catch (e: Exception) {
             ResultadoEsteganografia.Error("Error extrayendo mensaje: ${e.localizedMessage}")
         }
     }
 
-    /**
-     * Calcula cuántos caracteres puede almacenar una imagen.
-     *
-     * @param imagen Bitmap a evaluar
-     * @return Número máximo aproximado de caracteres
-     */
-    fun calcularCapacidad(imagen: Bitmap): Int {
-        val capacidadBits = imagen.width * imagen.height * 3
-        return (capacidadBits / 8) - MARCADOR_FIN.length - 10 // Margen de seguridad
-    }
+    /** Bytes de mensaje (tras el modo y, si hay contraseña, el cifrado) que caben en la imagen. */
+    fun calcularCapacidad(imagen: Bitmap): Int =
+        maxOf(0, EsteganografiaLSB.capacidadBytes(imagen.width * imagen.height) - 1)
 
-    // ── Funciones auxiliares ─────────────────────────────────
-
-    /**
-     * Convierte un texto a una lista de bits (0s y 1s).
-     * Usa codificación UTF-8.
-     */
-    private fun textoABits(texto: String): List<Int> {
-        val bytes = texto.toByteArray(Charsets.UTF_8)
-        return bytes.flatMap { byte ->
-            (7 downTo 0).map { i -> (byte.toInt() shr i) and 1 }
-        }
-    }
-
-    /**
-     * Modifica el bit menos significativo de un valor de color.
-     *
-     * @param valorColor Valor del canal (0-255)
-     * @param bit        El bit a escribir (0 o 1)
-     * @return El nuevo valor del canal con el LSB modificado
-     */
-    private fun modificarLSB(valorColor: Int, bit: Int): Int {
-        return (valorColor and 0xFE) or bit  // Limpiar LSB y escribir el nuevo
-    }
-
-    /**
-     * Convierte un Bitmap a ByteArray en formato PNG.
-     * Útil para guardar la imagen esteganografiada.
-     */
+    /** Convierte un Bitmap a PNG (sin pérdida), para guardarlo. */
     fun bitmapABytes(bitmap: Bitmap): ByteArray {
         val salida = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, salida)
         return salida.toByteArray()
+    }
+
+    /** Copia mutable y opaca: la imagen se dibuja sobre fondo negro. */
+    private fun aplanar(origen: Bitmap): Bitmap {
+        val copia = Bitmap.createBitmap(origen.width, origen.height, Bitmap.Config.ARGB_8888)
+        Canvas(copia).apply {
+            drawColor(Color.BLACK)
+            drawBitmap(origen, 0f, 0f, null)
+        }
+        return copia
     }
 }

@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![CriptES](https://img.shields.io/badge/CriptES-v1.1.1-darkred?style=for-the-badge&logo=android&logoColor=white)](https://github.com/borjaiturregui/CriptES/releases/latest)
+[![CriptES](https://img.shields.io/badge/CriptES-v1.4.0-darkred?style=for-the-badge&logo=android&logoColor=white)](https://github.com/borjaiturregui/CriptES/releases/latest)
 [![Kotlin](https://img.shields.io/badge/Kotlin-100%25-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
 [![Jetpack Compose](https://img.shields.io/badge/Jetpack_Compose-UI-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)](https://developer.android.com/compose)
 [![License](https://img.shields.io/badge/Licencia-MIT-red?style=for-the-badge)](LICENSE)
@@ -78,10 +78,11 @@ Genera huellas digitales criptográficas:
 </td>
 <td width="50%">
 
-### 🖼️ Esteganografía *(próximamente v1.2)*
+### 🖼️ Esteganografía
 Oculta mensajes dentro de imágenes:
 - Técnica LSB (Least Significant Bit)
-- Compatible con PNG y JPG
+- Acepta PNG o JPG como imagen portadora; el resultado siempre se guarda en PNG (sin pérdida)
+- Contraseña opcional: el mensaje se cifra con AES-256-GCM antes de ocultarlo
 - Sin alteración visual detectable
 
 </td>
@@ -89,14 +90,23 @@ Oculta mensajes dentro de imágenes:
 <tr>
 <td width="50%">
 
-### 📁 Cifrado de Archivos *(próximamente v1.3)*
-Protege archivos completos con AES-256:
-- Compatible con cualquier tipo de archivo
-- Archivos guardados en `Descargas/criptes/`
+### 📁 Cifrado de Archivos
+Protege archivos completos con AES-256-GCM:
+- Compatible con cualquier tipo de archivo, por bloques (sin cargarlo entero en memoria)
+- Detecta cualquier modificación del archivo cifrado
+- Tú eliges dónde guardarlo (selector del sistema, sin permisos de almacenamiento)
 - Descifrado con la misma contraseña
 
 </td>
-<td width="50%"></td>
+<td width="50%">
+
+### 🎲 Generador de Contraseñas
+Contraseñas aleatorias y seguras:
+- Longitud 8–64 y tipos de carácter a elegir
+- Medidor de fuerza en bits de entropía
+- Generadas con `SecureRandom`, sin salir del dispositivo
+
+</td>
 </tr>
 </table>
 
@@ -152,17 +162,23 @@ com.criptes.app/
 │       ├── PantallaInicio.kt
 │       ├── PantallaCifradoTexto.kt
 │       ├── PantallaCifradoRSA.kt
+│       ├── PantallaEsteganografia.kt
+│       ├── PantallaCifradoArchivo.kt
+│       ├── PantallaGeneradorContrasenas.kt
+│       ├── ComponentesComunes.kt
 │       ├── PantallaGeneradorHash.kt
-│       ├── PantallaEducativa.kt
-│       └── PantallasStub.kt
+│       └── PantallaEducativa.kt
 ├── dominio/
 │   └── modelos/            # Modelos de datos
 │       └── ContenidoEducativo.kt
 └── criptografia/           # Motor criptográfico
     ├── CifradoSimetrico.kt # AES-GCM, DES, 3DES, ChaCha20-Poly1305
     ├── CifradoRSA.kt       # RSA 2048 bits con OAEP
+    ├── CifradoArchivos.kt  # AES-256-GCM por bloques
+    ├── GeneradorContrasenas.kt
     ├── GeneradorHash.kt    # MD5, SHA-1, SHA-256, SHA-512
-    └── Esteganografia.kt   # LSB en imágenes
+    ├── Esteganografia.kt   # Adaptador Bitmap ↔ LSB
+    └── EsteganografiaLSB.kt # Núcleo LSB (probado en JVM)
 ```
 
 **Patrones aplicados:** MVVM · Clean Architecture · SOLID · Coroutines + Flow
@@ -214,9 +230,9 @@ CriptES tiene una identidad visual propia: **negro puro + rojo vino**. El tema o
 - [x] **v1.0** — Generador de hashes (MD5, SHA-1, SHA-256, SHA-512)
 - [x] **v1.0** — Modo educativo en español
 - [x] **v1.1** — Cifrado RSA (clave pública/privada 2048 bits)
-- [ ] **v1.2** — Esteganografía LSB en imágenes
-- [ ] **v1.3** — Cifrado de archivos con AES-256
-- [ ] **v1.4** — Generador de contraseñas seguras
+- [x] **v1.2** — Esteganografía LSB en imágenes
+- [x] **v1.3** — Cifrado de archivos con AES-256
+- [x] **v1.4** — Generador de contraseñas seguras
 
 ---
 

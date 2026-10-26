@@ -23,6 +23,7 @@ object Rutas {
     const val GENERADOR_HASH  = "generador_hash"
     const val ESTEGANOGRAFIA  = "esteganografia"
     const val CIFRADO_ARCHIVO = "cifrado_archivo"
+    const val GENERADOR_CONTRASENAS = "generador_contrasenas"
     const val EDUCATIVO       = "educativo/{algoritmo}"
 
     // Función de utilidad para construir la ruta educativa con parámetro
@@ -96,6 +97,14 @@ fun GrafoNavegacion(
         // ── Cifrado de archivos ──────────────────────────────
         composable(Rutas.CIFRADO_ARCHIVO) {
             PantallaCifradoArchivo(
+                alRetroceder   = { controladorNav.popBackStack() },
+                alVerEducativo = { algo -> controladorNav.navigate(Rutas.educativo(algo)) }
+            )
+        }
+
+        // ── Generador de contraseñas ─────────────────────────
+        composable(Rutas.GENERADOR_CONTRASENAS) {
+            PantallaGeneradorContrasenas(
                 alRetroceder   = { controladorNav.popBackStack() },
                 alVerEducativo = { algo -> controladorNav.navigate(Rutas.educativo(algo)) }
             )
