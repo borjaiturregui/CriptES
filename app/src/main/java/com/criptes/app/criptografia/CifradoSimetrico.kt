@@ -188,13 +188,23 @@ object CifradoSimetrico {
         contrasena: String,
         algoritmo:  AlgoritmoSimetrico,
         sal:        ByteArray
+    ): ByteArray = derivarClave(contrasena, algoritmo.longitudClave, sal)
+
+    /**
+     * Misma derivación PBKDF2 con una longitud de clave arbitraria, para
+     * reutilizarla en otros módulos (p. ej. cifrado de archivos).
+     */
+    internal fun derivarClave(
+        contrasena:     String,
+        longitudClave:  Int,
+        sal:            ByteArray
     ): ByteArray {
         val fabrica = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
         val spec    = PBEKeySpec(
             contrasena.toCharArray(),
             sal,
             ITERACIONES_KDF,
-            algoritmo.longitudClave * 8  // bits
+            longitudClave * 8  // bits
         )
         try {
             return fabrica.generateSecret(spec).encoded

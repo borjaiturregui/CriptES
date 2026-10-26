@@ -57,3 +57,58 @@ class CriptografiaInstrumentadaTest {
         assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", (r as ResultadoHash.Exito).hash)
     }
 }
+
+/**
+ * Pruebas de módulos que dependen de Android (Bitmap) o de flujos de archivo.
+ */
+@RunWith(AndroidJUnit4::class)
+class ModulosInstrumentadosTest {
+
+    private fun bitmapDePrueba(): android.graphics.Bitmap {
+        val b = android.graphics.Bitmap.createBitmap(120, 120, android.graphics.Bitmap.Config.ARGB_8888)
+        val r = java.util.Random(1)
+        for (x in 0 until 120) for (y in 0 until 120) b.setPixel(x, y, android.graphics.Color.rgb(r.nextInt(256), r.nextInt(256), r.nextInt(256)))
+        return b
+    }
+
+    private fun comoPng(b: android.graphics.Bitmap): android.graphics.Bitmap {
+        val bytes = Esteganografia.bitmapABytes(b)
+        return android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+    }
+
+    @Test fun esteganografia_roundtripTrasGuardarComoPng() {
+        val r = Esteganografia.ocultarMensaje(bitmapDePrueba(), "Mensaje secreto ñ 🔐")
+        assertTrue("$r", r is ResultadoEsteganografia.ExitoOcultar)
+        val recargada = comoPng((r as ResultadoEsteganografia.ExitoOcultar).imagenModificada)
+        val extraido = Esteganografia.extraerMensaje(recargada)
+        assertEquals("Mensaje secreto ñ 🔐", (extraido as ResultadoEsteganografia.ExitoExtraer).mensajeOculto)
+    }
+
+    @Test fun esteganografia_conContrasena() {
+        val r = Esteganografia.ocultarMensaje(bitmapDePrueba(), "privado", "clave") as ResultadoEsteganografia.ExitoOcultar
+        val recargada = comoPng(r.imagenModificada)
+        assertTrue(Esteganografia.extraerMensaje(recargada, "mala") is ResultadoEsteganografia.Error)
+        assertTrue(Esteganografia.extraerMensaje(recargada) is ResultadoEsteganografia.Error)
+        assertEquals("privado", (Esteganografia.extraerMensaje(recargada, "clave") as ResultadoEsteganografia.ExitoExtraer).mensajeOculto)
+    }
+
+    @Test fun esteganografia_imagenSinMensajeYImagenDemasiadoPequena() {
+        assertTrue(Esteganografia.extraerMensaje(bitmapDePrueba()) is ResultadoEsteganografia.Error)
+        val minuscula = android.graphics.Bitmap.createBitmap(4, 4, android.graphics.Bitmap.Config.ARGB_8888)
+        assertTrue(Esteganografia.ocultarMensaje(minuscula, "x".repeat(100)) is ResultadoEsteganografia.Error)
+    }
+
+    @Test fun cifradoArchivos_roundtripEnDispositivo() {
+        val original = ByteArray(200_000) { (it * 31).toByte() }
+        val cifrado = java.io.ByteArrayOutputStream()
+        assertTrue(CifradoArchivos.cifrar(java.io.ByteArrayInputStream(original), cifrado, "clave") is ResultadoArchivo.Exito)
+        val plano = java.io.ByteArrayOutputStream()
+        assertTrue(CifradoArchivos.descifrar(java.io.ByteArrayInputStream(cifrado.toByteArray()), plano, "clave") is ResultadoArchivo.Exito)
+        assertArrayEquals(original, plano.toByteArray())
+    }
+
+    @Test fun generadorContrasenas_enDispositivo() {
+        val r = GeneradorContrasenas.generar(OpcionesContrasena(longitud = 20))
+        assertEquals(20, (r as ResultadoContrasena.Exito).contrasena.length)
+    }
+}

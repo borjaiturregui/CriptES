@@ -343,12 +343,12 @@ fun CampoTextoEstilizado(
 }
 
 @Composable
-private fun CampoContrasena(valor: String, onCambio: (String) -> Unit) {
+fun CampoContrasena(valor: String, onCambio: (String) -> Unit, etiqueta: String = "Contraseña") {
     var visible by remember { mutableStateOf(false) }
     OutlinedTextField(
         value         = valor,
         onValueChange = onCambio,
-        label         = { Text("Contraseña", color = GrisClaro) },
+        label         = { Text(etiqueta, color = GrisClaro) },
         placeholder   = { Text("Tu clave secreta...", color = GrisMedio) },
         modifier      = Modifier.fillMaxWidth(),
         shape         = RoundedCornerShape(14.dp),
