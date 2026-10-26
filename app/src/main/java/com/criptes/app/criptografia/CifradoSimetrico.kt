@@ -1,14 +1,17 @@
 package com.criptes.app.criptografia
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-import java.security.Security
+import org.bouncycastle.crypto.modes.ChaCha20Poly1305
+import org.bouncycastle.crypto.params.KeyParameter
+import org.bouncycastle.crypto.params.ParametersWithIV
+import java.security.SecureRandom
+import java.util.Base64
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.*
 
 // ============================================================
 //  CriptES — Motor de Cifrado Simétrico
-//  Implementa: AES-256, DES, 3DES, ChaCha20
+//  Implementa: AES-256-GCM, DES, 3DES, ChaCha20-Poly1305
 // ============================================================
 
 /**
@@ -31,31 +34,41 @@ enum class AlgoritmoSimetrico(
     val nombreMostrar: String,
     val descripcionCorta: String,
     val transformacion: String,
-    val longitudClave: Int    // en bytes
+    val longitudClave: Int,   // en bytes
+    val tamañoIV: Int,        // IV o nonce, en bytes
+    val autenticado: Boolean  // detecta manipulación del texto cifrado
 ) {
     AES(
         nombreMostrar    = "AES-256",
-        descripcionCorta = "Estándar actual más seguro",
-        transformacion   = "AES/CBC/PKCS5Padding",
-        longitudClave    = 32     // 256 bits
+        descripcionCorta = "AES-256-GCM: estándar actual, cifrado autenticado",
+        transformacion   = "AES/GCM/NoPadding",
+        longitudClave    = 32,    // 256 bits
+        tamañoIV         = 12,
+        autenticado      = true
     ),
     DES(
         nombreMostrar    = "DES",
-        descripcionCorta = "Clásico, actualmente obsoleto",
+        descripcionCorta = "Obsoleto e inseguro, sin autenticación: solo educativo",
         transformacion   = "DES/CBC/PKCS5Padding",
-        longitudClave    = 8      // 64 bits
+        longitudClave    = 8,     // 64 bits (56 efectivos)
+        tamañoIV         = 8,
+        autenticado      = false
     ),
     TRIPLE_DES(
         nombreMostrar    = "3DES",
-        descripcionCorta = "Triple DES, más seguro que DES",
+        descripcionCorta = "Retirado para uso nuevo, sin autenticación: solo educativo",
         transformacion   = "DESede/CBC/PKCS5Padding",
-        longitudClave    = 24     // 192 bits
+        longitudClave    = 24,    // 192 bits representados
+        tamañoIV         = 8,
+        autenticado      = false
     ),
     CHACHA20(
         nombreMostrar    = "ChaCha20",
-        descripcionCorta = "Moderno y rápido, usado en TLS 1.3",
-        transformacion   = "ChaCha20",
-        longitudClave    = 32     // 256 bits
+        descripcionCorta = "ChaCha20-Poly1305: moderno, cifrado autenticado (TLS 1.3)",
+        transformacion   = "ChaCha20-Poly1305",
+        longitudClave    = 32,    // 256 bits
+        tamañoIV         = 12,
+        autenticado      = true
     )
 }
 
@@ -63,23 +76,27 @@ enum class AlgoritmoSimetrico(
  * Motor principal de cifrado simétrico de CriptES.
  *
  * Todos los métodos son funciones puras sin estado.
- * El IV (vector de inicialización) se genera aleatoriamente
- * y se adjunta al texto cifrado para permitir el descifrado.
  *
  * Formato del texto cifrado (Base64):
- *   [IV de 16 bytes] + [datos cifrados]
+ *   [sal de 16 bytes] + [IV o nonce] + [datos cifrados]
+ *
+ * AES-256-GCM y ChaCha20-Poly1305 añaden una etiqueta de 16 bytes
+ * que se verifica al descifrar: cualquier alteración de la sal, el
+ * IV/nonce o los datos, o una contraseña incorrecta, produce un error.
+ * DES y 3DES (CBC) NO autentican: son demostraciones educativas.
+ *
+ * Proveedores: AES, DES, 3DES y PBKDF2 usan los proveedores del sistema.
+ * ChaCha20-Poly1305 usa la API ligera de Bouncy Castle (referencia
+ * directa, sin registrar ni nombrar ningún proveedor), de modo que
+ * funciona igual en API 26-27, donde Android no lo incluye.
  */
 object CifradoSimetrico {
 
-    // Registrar Bouncy Castle como proveedor de seguridad
-    init {
-        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
-            Security.addProvider(BouncyCastleProvider())
-        }
-    }
+    private const val TAMAÑO_SAL      = 16
+    private const val BITS_ETIQUETA   = 128
+    private const val ITERACIONES_KDF = 65_536
 
-    private val TAMAÑO_SAL     = 16
-    private val TAMAÑO_NONCE_CHACHA20 = 12
+    private val aleatorio = SecureRandom()
 
     // ── API Pública ──────────────────────────────────────────
 
@@ -100,15 +117,16 @@ object CifradoSimetrico {
         if (contrasena.isBlank()) return ResultadoCifrado.Error("La contraseña no puede estar vacía")
 
         return try {
-            val sal       = java.security.SecureRandom().generateSeed(TAMAÑO_SAL)
-            val clave     = derivarClave(contrasena, algoritmo, sal)
-            val cifrado   = when (algoritmo) {
-                AlgoritmoSimetrico.CHACHA20    -> cifrarChaCha20(textoCrudo.toByteArray(), clave)
-                else                           -> cifrarConIV(textoCrudo.toByteArray(), clave, algoritmo)
+            val sal     = bytesAleatorios(TAMAÑO_SAL)
+            val iv      = bytesAleatorios(algoritmo.tamañoIV)
+            val clave   = derivarClave(contrasena, algoritmo, sal)
+            val datos   = textoCrudo.toByteArray(Charsets.UTF_8)
+            val cifrado = when (algoritmo) {
+                AlgoritmoSimetrico.CHACHA20 -> procesarChaCha20(true, datos, clave, iv)
+                else                        -> procesarConCipher(Cipher.ENCRYPT_MODE, datos, clave, iv, algoritmo)
             }
-            // Formato: [sal de 16 bytes] + [datos cifrados (con IV/nonce incluido)]
-            val resultado = sal + cifrado
-            ResultadoCifrado.Exito(java.util.Base64.getEncoder().encodeToString(resultado))
+            // Formato: [sal] + [IV/nonce] + [datos cifrados]
+            ResultadoCifrado.Exito(Base64.getEncoder().encodeToString(sal + iv + cifrado))
         } catch (e: Exception) {
             ResultadoCifrado.Error("Error al cifrar: ${e.localizedMessage}")
         }
@@ -131,24 +149,28 @@ object CifradoSimetrico {
         if (contrasena.isBlank())   return ResultadoCifrado.Error("La contraseña no puede estar vacía")
 
         return try {
-            val bytesEntrada = java.util.Base64.getDecoder().decode(textoCifrado)
-            if (bytesEntrada.size <= TAMAÑO_SAL) {
+            val bytesEntrada = Base64.getDecoder().decode(textoCifrado.trim())
+            if (bytesEntrada.size <= TAMAÑO_SAL + algoritmo.tamañoIV) {
                 return ResultadoCifrado.Error("Texto cifrado inválido o demasiado corto")
             }
-            val sal          = bytesEntrada.take(TAMAÑO_SAL).toByteArray()
-            val datosCifrados = bytesEntrada.drop(TAMAÑO_SAL).toByteArray()
-            val clave        = derivarClave(contrasena, algoritmo, sal)
-            val resultado    = when (algoritmo) {
-                AlgoritmoSimetrico.CHACHA20 -> descifrarChaCha20(datosCifrados, clave)
-                else                        -> descifrarConIV(datosCifrados, clave, algoritmo)
+            val sal     = bytesEntrada.copyOfRange(0, TAMAÑO_SAL)
+            val iv      = bytesEntrada.copyOfRange(TAMAÑO_SAL, TAMAÑO_SAL + algoritmo.tamañoIV)
+            val cifrado = bytesEntrada.copyOfRange(TAMAÑO_SAL + algoritmo.tamañoIV, bytesEntrada.size)
+            val clave   = derivarClave(contrasena, algoritmo, sal)
+            val datos   = when (algoritmo) {
+                AlgoritmoSimetrico.CHACHA20 -> procesarChaCha20(false, cifrado, clave, iv)
+                else                        -> procesarConCipher(Cipher.DECRYPT_MODE, cifrado, clave, iv, algoritmo)
             }
-            ResultadoCifrado.Exito(String(resultado))
+            ResultadoCifrado.Exito(String(datos, Charsets.UTF_8))
         } catch (e: Exception) {
             ResultadoCifrado.Error("Error al descifrar — verifica la contraseña y el algoritmo")
         }
     }
 
     // ── Implementaciones internas ────────────────────────────
+
+    private fun bytesAleatorios(tamaño: Int): ByteArray =
+        ByteArray(tamaño).also { aleatorio.nextBytes(it) }
 
     /**
      * Deriva una clave criptográfica de longitud correcta desde
@@ -160,8 +182,7 @@ object CifradoSimetrico {
      * computacionalmente costosos.
      *
      * @param sal Sal aleatoria de 16 bytes, única por cada operación de cifrado.
-     *            Debe generarse con SecureRandom al cifrar y recuperarse del
-     *            ciphertext al descifrar.
+     *            Se genera al cifrar y se recupera del texto cifrado al descifrar.
      */
     private fun derivarClave(
         contrasena: String,
@@ -172,96 +193,56 @@ object CifradoSimetrico {
         val spec    = PBEKeySpec(
             contrasena.toCharArray(),
             sal,
-            65_536,                      // iteraciones
+            ITERACIONES_KDF,
             algoritmo.longitudClave * 8  // bits
         )
-        return fabrica.generateSecret(spec).encoded
+        try {
+            return fabrica.generateSecret(spec).encoded
+        } finally {
+            spec.clearPassword()
+        }
     }
 
     /**
-     * Cifra con IV aleatorio (para AES, DES, 3DES).
-     * El IV se antepone al texto cifrado para que el descifrado
-     * pueda recuperarlo.
+     * Cifra o descifra con el proveedor del sistema (AES-GCM, DES-CBC, 3DES-CBC).
+     * En GCM, doFinal verifica la etiqueta y lanza excepción si no coincide.
      */
-    private fun cifrarConIV(
+    private fun procesarConCipher(
+        modo:      Int,
         datos:     ByteArray,
         clave:     ByteArray,
+        iv:        ByteArray,
         algoritmo: AlgoritmoSimetrico
     ): ByteArray {
-        val cipher    = Cipher.getInstance(algoritmo.transformacion, "BC")
-        val secretKey = crearClaveSecreta(clave, algoritmo)
-
-        // Generar IV aleatorio
-        val tamañoIV = if (algoritmo == AlgoritmoSimetrico.DES) 8 else 16
-        val iv        = java.security.SecureRandom().generateSeed(tamañoIV)
-        val ivSpec    = IvParameterSpec(iv)
-
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivSpec)
-        val cifrado = cipher.doFinal(datos)
-
-        // Formato: [IV][datos cifrados]
-        return iv + cifrado
-    }
-
-    /**
-     * Descifra extrayendo el IV del inicio de los datos.
-     */
-    private fun descifrarConIV(
-        datos:     ByteArray,
-        clave:     ByteArray,
-        algoritmo: AlgoritmoSimetrico
-    ): ByteArray {
-        val tamañoIV  = if (algoritmo == AlgoritmoSimetrico.DES) 8 else 16
-        val iv        = datos.take(tamañoIV).toByteArray()
-        val cifrado   = datos.drop(tamañoIV).toByteArray()
-
-        val cipher    = Cipher.getInstance(algoritmo.transformacion, "BC")
-        val secretKey = crearClaveSecreta(clave, algoritmo)
-        val ivSpec    = IvParameterSpec(iv)
-
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, ivSpec)
-        return cipher.doFinal(cifrado)
-    }
-
-    /**
-     * Cifra con ChaCha20 usando un nonce aleatorio por operación.
-     * Formato de salida: [nonce de 12 bytes] + [datos cifrados]
-     */
-    private fun cifrarChaCha20(datos: ByteArray, clave: ByteArray): ByteArray {
-        val nonce     = java.security.SecureRandom().generateSeed(TAMAÑO_NONCE_CHACHA20)
-        val cipher    = Cipher.getInstance("ChaCha20", "BC")
-        val claveSpec = SecretKeySpec(clave, "ChaCha20")
-        val ivSpec    = IvParameterSpec(nonce)
-        cipher.init(Cipher.ENCRYPT_MODE, claveSpec, ivSpec)
-        return nonce + cipher.doFinal(datos)
-    }
-
-    /**
-     * Descifra con ChaCha20 extrayendo el nonce del inicio de los datos.
-     */
-    private fun descifrarChaCha20(datos: ByteArray, clave: ByteArray): ByteArray {
-        val nonce     = datos.take(TAMAÑO_NONCE_CHACHA20).toByteArray()
-        val cifrado   = datos.drop(TAMAÑO_NONCE_CHACHA20).toByteArray()
-        val cipher    = Cipher.getInstance("ChaCha20", "BC")
-        val claveSpec = SecretKeySpec(clave, "ChaCha20")
-        val ivSpec    = IvParameterSpec(nonce)
-        cipher.init(Cipher.DECRYPT_MODE, claveSpec, ivSpec)
-        return cipher.doFinal(cifrado)
-    }
-
-    /**
-     * Crea el objeto SecretKey con el tipo correcto para cada algoritmo.
-     */
-    private fun crearClaveSecreta(
-        clave:     ByteArray,
-        algoritmo: AlgoritmoSimetrico
-    ): javax.crypto.SecretKey {
-        val tipo = when (algoritmo) {
+        val tipoClave = when (algoritmo) {
             AlgoritmoSimetrico.AES        -> "AES"
             AlgoritmoSimetrico.DES        -> "DES"
             AlgoritmoSimetrico.TRIPLE_DES -> "DESede"
-            AlgoritmoSimetrico.CHACHA20   -> "ChaCha20"
+            AlgoritmoSimetrico.CHACHA20   -> error("ChaCha20 no usa javax.crypto.Cipher")
         }
-        return SecretKeySpec(clave, tipo)
+        val parametros = if (algoritmo == AlgoritmoSimetrico.AES) GCMParameterSpec(BITS_ETIQUETA, iv)
+                         else IvParameterSpec(iv)
+        val cipher = Cipher.getInstance(algoritmo.transformacion)
+        cipher.init(modo, SecretKeySpec(clave, tipoClave), parametros)
+        return cipher.doFinal(datos)
+    }
+
+    /**
+     * ChaCha20-Poly1305 (RFC 8439) con la API ligera de Bouncy Castle.
+     * Al descifrar, doFinal verifica la etiqueta Poly1305 y lanza
+     * InvalidCipherTextException si no coincide.
+     */
+    private fun procesarChaCha20(
+        cifrando: Boolean,
+        datos:    ByteArray,
+        clave:    ByteArray,
+        nonce:    ByteArray
+    ): ByteArray {
+        val aead = ChaCha20Poly1305()
+        aead.init(cifrando, ParametersWithIV(KeyParameter(clave), nonce))
+        val salida = ByteArray(aead.getOutputSize(datos.size))
+        var longitud = aead.processBytes(datos, 0, datos.size, salida, 0)
+        longitud += aead.doFinal(salida, longitud)
+        return salida.copyOf(longitud)
     }
 }
