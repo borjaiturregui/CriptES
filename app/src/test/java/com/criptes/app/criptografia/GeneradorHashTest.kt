@@ -16,7 +16,7 @@ class GeneradorHashTest {
     @Test fun sha256_abc_devuelveHashConocido() {
         val resultado = GeneradorHash.generar("abc", AlgoritmoHash.SHA256)
         assertTrue(resultado is ResultadoHash.Exito)
-        assertEquals("ba7816bf8f01cfea414140de5dae2ec73b00361bbef0469f490f67457112b3f7", (resultado as ResultadoHash.Exito).hash)
+        assertEquals("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", (resultado as ResultadoHash.Exito).hash)
     }
 
     @Test fun sha512_abc_devuelveHashConocido() {

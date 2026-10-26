@@ -16,8 +16,8 @@ android {
         applicationId = "com.criptes.app"
         minSdk        = 26
         targetSdk     = 35
-        versionCode   = 1
-        versionName   = "1.0.0"
+        versionCode   = 3
+        versionName   = "1.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -93,8 +93,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
     // ── Bouncy Castle ─────────────────────────────────────────
-    implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.78.1")
+    // Solo API ligera (ChaCha20-Poly1305 y OAEP con parámetros fijos);
+    // no se registra como proveedor JCA. bcpkix no se usa.
+    implementation("org.bouncycastle:bcprov-jdk18on:1.86")
 
     // ── Splash Screen ─────────────────────────────────────────
     implementation("androidx.core:core-splashscreen:1.0.1")

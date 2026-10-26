@@ -48,10 +48,10 @@
 
 ### 🔒 Cifrado Simétrico de Texto
 Cifra y descifra mensajes con los algoritmos más usados en la industria:
-- **AES-256** — El estándar más seguro actual
-- **DES** — Clásico, ahora considerado débil
-- **3DES** — Mejora de DES con triple aplicación
-- **ChaCha20** — Moderno, usado en TLS 1.3
+- **AES-256-GCM** — El estándar actual, cifrado autenticado
+- **DES** — Clásico, obsoleto e inseguro (solo educativo, sin autenticación)
+- **3DES** — Retirado para uso nuevo (solo educativo, sin autenticación)
+- **ChaCha20-Poly1305** — Moderno, cifrado autenticado, usado en TLS 1.3
 
 </td>
 <td width="50%">
@@ -159,7 +159,7 @@ com.criptes.app/
 │   └── modelos/            # Modelos de datos
 │       └── ContenidoEducativo.kt
 └── criptografia/           # Motor criptográfico
-    ├── CifradoSimetrico.kt # AES, DES, 3DES, ChaCha20
+    ├── CifradoSimetrico.kt # AES-GCM, DES, 3DES, ChaCha20-Poly1305
     ├── CifradoRSA.kt       # RSA 2048 bits con OAEP
     ├── GeneradorHash.kt    # MD5, SHA-1, SHA-256, SHA-512
     └── Esteganografia.kt   # LSB en imágenes
@@ -203,8 +203,8 @@ CriptES tiene una identidad visual propia: **negro puro + rojo vino**. El tema o
 | Jetpack Compose BOM | 2024.06.00 | UI declarativa moderna |
 | Kotlin | 1.9.25 | Lenguaje principal |
 | Navigation Compose | 2.7.7 | Navegación entre pantallas |
-| Coroutines | 1.8.0 | Operaciones asíncronas |
-| Bouncy Castle | 1.77 | Motor criptográfico avanzado |
+| Coroutines | 1.8.1 | Operaciones asíncronas |
+| Bouncy Castle | 1.86 | ChaCha20-Poly1305 y OAEP (API ligera) |
 
 ---
 
